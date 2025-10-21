@@ -137,7 +137,7 @@ def calculate_metrics(y_true, y_pred, class_names):
     
     return metrics, overall_metrics, confusion_matrix
 
-def evaluate_model(model_path='deepinfant_tensorflow.tflite', data_dir='Data', sample_size=100):
+def evaluate_model(model_path='deepinfant_tensorflow.tflite', data_dir='Data/v2', sample_size=100):
     """
     Evaluate the model and calculate precision metrics
     """

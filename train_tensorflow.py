@@ -139,9 +139,10 @@ def create_deepinfant_model(input_shape=(80, 437), num_classes=9):
     se = layers.Reshape((1, 1, 256))(se)
     x = layers.Multiply()([x, se])
     
-    # Reshape for LSTM
-    shape = tf.shape(x)
-    x = layers.Reshape((shape[2], shape[1] * shape[3]))(x)  # (time, features)
+    # Reshape for LSTM - flatten spatial dimensions while keeping time
+    x = layers.Permute((2, 1, 3))(x)  # (batch, width, height, channels)
+    x_shape = x.shape
+    x = layers.Reshape((x_shape[1], x_shape[2] * x_shape[3]))(x)  # (time, features)
     
     # Bi-directional LSTM for temporal modeling
     x = layers.Bidirectional(

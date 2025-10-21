@@ -145,7 +145,7 @@ def main():
     
     # Demo single file prediction
     print(f"\n🎯 Testing single file prediction:")
-    test_files = list(Path('Data').glob('**/*.wav'))[:3]
+    test_files = list(Path('Data/v2').glob('**/*.wav'))[:3]
     
     if test_files:
         for test_file in test_files:
@@ -153,11 +153,11 @@ def main():
             print(f"   {test_file.name}")
             print(f"   → Prediction: {label} (confidence: {confidence:.1%})")
     else:
-        print("   No test files found in Data/ directory")
+        print("   No test files found in Data/v2/ directory")
     
     # Demo batch prediction
     print(f"\n📁 Testing batch prediction:")
-    results = predictor.predict_batch('Data')
+    results = predictor.predict_batch('Data/v2')
     
     if results:
         print(f"   Results (showing first {len(results)}):")

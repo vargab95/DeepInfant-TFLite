@@ -1,1 +1,5 @@
 __pycache__/
+*.h5
+*.tflite
+processed_dataset/
+*.log

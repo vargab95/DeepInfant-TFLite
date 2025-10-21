@@ -138,7 +138,7 @@ def train_simple():
     
     # Load dataset
     print("📂 Loading dataset...")
-    dataset = SimpleDataset('Data')
+    dataset = SimpleDataset('Data/v2')
     
     print(f"✅ Found {len(dataset.samples)} audio samples")
     
