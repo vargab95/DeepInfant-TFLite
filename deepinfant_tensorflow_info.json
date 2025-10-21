@@ -1,0 +1,29 @@
+{
+  "model_type": "DeepInfant_TensorFlowLite",
+  "version": "1.0",
+  "input_shape": [
+    1,
+    80,
+    437,
+    1
+  ],
+  "output_shape": [
+    1,
+    9
+  ],
+  "num_classes": 9,
+  "classes": [
+    "belly_pain",
+    "burping",
+    "cold_hot",
+    "discomfort",
+    "hungry",
+    "lonely",
+    "scared",
+    "tired",
+    "unknown"
+  ],
+  "sample_rate": 16000,
+  "duration_seconds": 7,
+  "note": "Mock model for demonstration - replace with actual TensorFlow training"
+}

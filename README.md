@@ -7,7 +7,7 @@ DeepInfant® is a Neural network system designed to predict whether and why your
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Paper](https://img.shields.io/badge/paper-DeepInfant-yellowgreen)](https://github.com/skytells-research/DeepInfant/DeepInfant.pdf)
 [![Model Accuracy](https://img.shields.io/badge/accuracy-89%25-success)](https://github.com/skytells-research/DeepInfant)
-[![Model Framework](https://img.shields.io/badge/framework-CoreML-orange)](https://github.com/skytells-research/DeepInfant)
+[![Model Framework](https://img.shields.io/badge/framework-TensorFlow%20Lite-orange)](https://github.com/skytells-research/DeepInfant)
 
 DeepInfant uses artificial intelligence and machine learning algorithms to determine which acoustic features are associated with each of a baby's needs.
 
@@ -49,18 +49,24 @@ To increase the robustness and variability of the training data, **DeepInfant V2
 
 These augmentations help the model generalize better and handle varying acoustic conditions.
 
-## iOS Models
-This repo is published with pre-trained CoreML Models.
+## TensorFlow Lite Models
+This repo now provides TensorFlow Lite models for cross-platform deployment, replacing the previous CoreML models.
 
-* **DeepInfant_VGGish**
-* **DeepInfant_AFP**
-* **DeepInfant_V2**
+* **DeepInfant TensorFlow** (deepinfant_tensorflow.h5) - Full Keras model
+* **DeepInfant TFLite Quantized** (deepinfant_tensorflow.tflite) - Optimized for mobile
+* **DeepInfant TFLite Unquantized** (deepinfant_tensorflow_unquantized.tflite) - Full precision
 
-| Model               | Feature Extraction            | Training Data                  | Classification Window | Accuracy Improvement |
-| :-----------------: | :---------------------------: | :----------------------------: | :-------------------: | :------------------: |
-| DeepInfant_VGGish   | Extra layers for classification | Limited dataset              | Fixed 975ms          | 75%                  |
-| DeepInfant_AFP      | Optimized for speed          | Limited dataset              | Flexible             | 78%                  |
-| **DeepInfant_V2**   | **Advanced feature extraction** | **Expanded dataset with new cry classes** | **Flexible & optimized** | **89%**             |
+| Model Type          | Format | Size | Inference Speed | Accuracy | Platform Support |
+| :-----------------: | :----: | :--: | :-------------: | :------: | :--------------: |
+| TensorFlow Keras    | .h5    | ~15MB | Standard       | 89%      | Desktop/Server   |
+| TFLite Quantized    | .tflite| ~4MB  | **3x faster**  | ~87%     | **Mobile/Edge**  |
+| TFLite Unquantized  | .tflite| ~15MB | 2x faster      | 89%      | Mobile/Edge      |
+
+### Legacy CoreML Models (Deprecated)
+The following CoreML models are now deprecated in favor of TensorFlow Lite:
+* ~~DeepInfant_VGGish~~ → Use TFLite models instead
+* ~~DeepInfant_AFP~~ → Use TFLite models instead  
+* ~~DeepInfant_V2~~ → Use TFLite models instead
 
 ## DeepInfant V2: Expanded Methodology
 By integrating lessons from the babycry repository, **DeepInfant V2** expands upon the initial pipeline:
@@ -90,7 +96,7 @@ Below is an illustrative table adapted from the babycry approach:
 | Data Labeling   | Label audio segments as cry/non-cry and reason.                  | Crowdsource labeling, manual checks |
 | Augmentation    | Pitch shifting, time stretching, adding noise.                   | `librosa`, custom Python scripts |
 | Feature Extraction | MFCC or Mel-spectrogram generation to represent audio features. | `librosa`, `scipy`, `numpy` |
-| Classification  | CNN, RNN, or hybrid architecture for final cry reason detection. | `pytorch`, `fastai`, `tensorflow`, `CoreML` |
+| Classification  | CNN, RNN, or hybrid architecture for final cry reason detection. | `tensorflow`, `keras`, `TensorFlow Lite` |
 | Evaluation      | Evaluate model performance across multiple metrics and splits.   | `scikit-learn` metrics, confusion matrix |
 
 
@@ -124,6 +130,53 @@ DeepInfant V2 is trained using a deep neural network with multiple stages of pro
 & \text{6. Fully connected layers for classification with Softmax activation} \\
 & \text{Output: Probability distribution over cry classes}.
 \end{aligned}
+```
+
+## Quick Start
+
+### Training a New Model
+To train a new TensorFlow/TFLite model from scratch:
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Prepare your dataset (place audio files in Data/ directory)
+python prepare_dataset.py
+
+# Train the model
+python train_tensorflow.py
+```
+
+This will generate:
+- `deepinfant_tensorflow.h5` - Full Keras model
+- `deepinfant_tensorflow.tflite` - Quantized TFLite model  
+- `deepinfant_tensorflow_unquantized.tflite` - Unquantized TFLite model
+- `deepinfant_tensorflow_info.json` - Model metadata
+
+### Making Predictions
+
+```python
+from predict_tflite import InfantCryTFLitePredictor
+
+# Load the TFLite model
+predictor = InfantCryTFLitePredictor('deepinfant_tensorflow.tflite')
+
+# Predict on a single audio file
+label, confidence, probabilities = predictor.predict('path/to/audio.wav')
+print(f"Prediction: {label} (confidence: {confidence:.2%})")
+
+# Batch prediction on a directory
+results = predictor.predict_batch('path/to/audio/directory')
+for filename, label, confidence in results:
+    print(f"{filename}: {label} ({confidence:.2%})")
+```
+
+### Converting Legacy Models
+If you have existing PyTorch models, you can convert the architecture (note: weights need retraining):
+
+```bash
+python convert_pytorch_to_tensorflow.py
 ```
 
 ## Building a model
@@ -247,8 +300,38 @@ The audio files should contain baby cry samples, with the corresponding tagging 
 - **dc** - discomfort
 - **ti** - tired
 
-## iOS and iPadOS App
-This repo contains an example of using `DeepInfant_VGGish`, `DeepInfant_AFP`, or `DeepInfant_V2` models to build an iOS app that analyzes a baby's cry sound and pushes prediction results with a tip on how to deal with each predicted result.
+## Mobile Apps
+
+### iOS and iPadOS App (Legacy CoreML)
+The iOS app in this repo uses the legacy CoreML models. For new implementations, we recommend using TensorFlow Lite models which provide:
+- Cross-platform compatibility (iOS, Android, Web)
+- Better optimization for mobile devices
+- Smaller model sizes with quantization
+- Faster inference speeds
+
+### TensorFlow Lite Integration
+To integrate TFLite models in mobile apps:
+
+**iOS (Swift)**:
+```swift
+import TensorFlowLite
+
+let interpreter = try Interpreter(modelPath: "deepinfant_tensorflow.tflite")
+```
+
+**Android (Kotlin)**:
+```kotlin
+import org.tensorflow.lite.Interpreter
+
+val interpreter = Interpreter(loadModelFile("deepinfant_tensorflow.tflite"))
+```
+
+**React Native**:
+```javascript
+import {TensorflowLite} from 'react-native-tensorflow-lite';
+
+const model = await TensorflowLite.loadModel('deepinfant_tensorflow.tflite');
+```
 
 ## Citation
 If you use DeepInfant in your research, please cite the following paper:
